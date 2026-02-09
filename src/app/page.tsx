@@ -8,6 +8,7 @@ import SettingsModal from "@/components/SettingsModal";
 import {
   conversations as initialConversations,
   messagesByConversation as initialMessages,
+  getRandomMockResponse,
 } from "@/lib/mock-data";
 import type {
   Conversation,
@@ -21,6 +22,7 @@ import type {
 } from "@/lib/types";
 
 const PROFILE_UPDATE_INTERVAL = 5;
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
@@ -103,36 +105,44 @@ export default function Home() {
 
       setIsLoading(true);
 
-      const chatMessages: ChatMessage[] = updatedMessages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const body: ChatRequest = {
-        conversationId: activeId,
-        messages: chatMessages,
-        profile: profile.length > 0 ? profile : undefined,
-        config: { model, temperature },
-      };
-
       try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        let responseContent: string;
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error ?? "APIエラーが発生しました");
+        if (USE_MOCK) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          responseContent = getRandomMockResponse();
+        } else {
+          const chatMessages: ChatMessage[] = updatedMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          }));
+
+          const body: ChatRequest = {
+            conversationId: activeId,
+            messages: chatMessages,
+            profile: profile.length > 0 ? profile : undefined,
+            config: { model, temperature },
+          };
+
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error ?? "APIエラーが発生しました");
+          }
+
+          const data = (await res.json()) as ChatResponse;
+          responseContent = data.message.content;
         }
-
-        const data = (await res.json()) as ChatResponse;
 
         const assistantMessage: Message = {
           id: `${activeId}-${Date.now()}-resp`,
           role: "assistant",
-          content: data.message.content,
+          content: responseContent,
           createdAt: new Date().toISOString(),
         };
 
@@ -143,14 +153,16 @@ export default function Home() {
           [activeId]: allMessages,
         }));
 
-        // プロファイル更新（N件ごと）
-        messageCountRef.current += 1;
-        if (messageCountRef.current % PROFILE_UPDATE_INTERVAL === 0) {
-          const profileMessages: ChatMessage[] = allMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          }));
-          fetchProfile(profileMessages);
+        // プロファイル更新（N件ごと、mockモードではスキップ）
+        if (!USE_MOCK) {
+          messageCountRef.current += 1;
+          if (messageCountRef.current % PROFILE_UPDATE_INTERVAL === 0) {
+            const profileMessages: ChatMessage[] = allMessages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            }));
+            fetchProfile(profileMessages);
+          }
         }
       } catch (err) {
         const errorContent =
