@@ -1,15 +1,6 @@
-export type Conversation = {
-  id: string;
-  title: string;
-  createdAt: string;
-};
+import { Conversation, Message } from "./types";
 
-export type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-};
+export type { Conversation, Message };
 
 export const conversations: Conversation[] = [
   {

@@ -2,39 +2,41 @@
 
 import { useState } from "react";
 import { useTheme } from "@/lib/theme-context";
+import type { ProfileAttribute } from "@/lib/types";
 
 type SettingsModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  profile: ProfileAttribute[];
+  onDeleteProfileAttribute: (key: string) => void;
+  model: string;
+  onModelChange: (value: string) => void;
+  temperature: number;
+  onTemperatureChange: (value: number) => void;
 };
 
-const categories = ["プロファイル", "一般", "表示", "通知", "モデル", "API"] as const;
+const categories = ["プロファイル", "一般", "表示", "通知", "モデル"] as const;
 type Category = (typeof categories)[number];
 
-export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+export default function SettingsModal({
+  isOpen,
+  onClose,
+  profile,
+  onDeleteProfileAttribute,
+  model,
+  onModelChange,
+  temperature,
+  onTemperatureChange,
+}: SettingsModalProps) {
   const [activeCategory, setActiveCategory] = useState<Category>("プロファイル");
   const { theme, setTheme } = useTheme();
 
-  // モック設定state
+  // ローカルのみの設定state
   const [language, setLanguage] = useState("ja");
   const [fontSize, setFontSize] = useState("medium");
   const [messageWidth, setMessageWidth] = useState("standard");
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [notificationSound, setNotificationSound] = useState(true);
-  const [model, setModel] = useState("gpt-4");
-  const [temperature, setTemperature] = useState(0.7);
-  const [apiKey, setApiKey] = useState("");
-  const [endpointUrl, setEndpointUrl] = useState("");
-
-  // モックプロファイル属性（AIとのやりとりで動的に生成される想定）
-  const profileAttributes = [
-    { key: "技術レベル", value: "上級", confidence: 0.92 },
-    { key: "主要言語", value: "TypeScript / Python", confidence: 0.88 },
-    { key: "関心領域", value: "フロントエンド開発", confidence: 0.85 },
-    { key: "コミュニケーションスタイル", value: "簡潔・技術的", confidence: 0.78 },
-    { key: "好みのフレームワーク", value: "React / Next.js", confidence: 0.91 },
-    { key: "回答の詳細度", value: "詳細な説明を好む", confidence: 0.72 },
-  ];
 
   if (!isOpen) return null;
 
@@ -48,37 +50,46 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 AIとの会話から自動的に推定された属性です。正確でない項目は削除できます。
               </p>
             </div>
-            <div className="space-y-3">
-              {profileAttributes.map((attr) => (
-                <div
-                  key={attr.key}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{attr.key}</div>
-                    <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{attr.value}</div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0 ml-4">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-1.5 w-16 rounded-full bg-gray-200 overflow-hidden dark:bg-gray-600">
-                        <div
-                          className="h-full rounded-full bg-blue-500"
-                          style={{ width: `${attr.confidence * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-400 w-8 text-right">
-                        {Math.round(attr.confidence * 100)}%
-                      </span>
+            {profile.length === 0 ? (
+              <div className="text-sm text-gray-400 dark:text-gray-500">
+                まだプロファイルがありません。会話を続けると自動的に生成されます。
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {profile.map((attr) => (
+                  <div
+                    key={attr.key}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{attr.key}</div>
+                      <div className="text-sm font-medium text-gray-900 truncate dark:text-gray-100">{attr.value}</div>
                     </div>
-                    <button className="rounded p-1 text-gray-300 hover:bg-gray-200 hover:text-gray-500 transition-colors dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-3 shrink-0 ml-4">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-1.5 w-16 rounded-full bg-gray-200 overflow-hidden dark:bg-gray-600">
+                          <div
+                            className="h-full rounded-full bg-blue-500"
+                            style={{ width: `${attr.confidence * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-gray-400 w-8 text-right">
+                          {Math.round(attr.confidence * 100)}%
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => onDeleteProfileAttribute(attr.key)}
+                        className="rounded p-1 text-gray-300 hover:bg-gray-200 hover:text-gray-500 transition-colors dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
@@ -183,12 +194,12 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">モデル選択</label>
               <select
                 value={model}
-                onChange={(e) => setModel(e.target.value)}
+                onChange={(e) => onModelChange(e.target.value)}
                 className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               >
-                <option value="gpt-4">GPT-4</option>
-                <option value="claude">Claude</option>
-                <option value="gemini">Gemini</option>
+                <option value="gpt-4o-mini">GPT-4o mini</option>
+                <option value="gpt-4o">GPT-4o</option>
+                <option value="gpt-4.1">GPT-4.1</option>
               </select>
             </div>
             <div>
@@ -201,7 +212,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 max="2"
                 step="0.1"
                 value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
                 className="w-full max-w-xs"
               />
               <div className="flex justify-between text-xs text-gray-400 max-w-xs dark:text-gray-500">
@@ -213,31 +224,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
         );
 
-      case "API":
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">APIキー</label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
-                className="w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">エンドポイントURL</label>
-              <input
-                type="text"
-                value={endpointUrl}
-                onChange={(e) => setEndpointUrl(e.target.value)}
-                placeholder="https://api.example.com/v1"
-                className="w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              />
-            </div>
-          </div>
-        );
     }
   };
 
