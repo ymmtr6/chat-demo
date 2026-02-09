@@ -72,11 +72,10 @@ confidence は会話内容からどの程度確信が持てるかを 0.0〜1.0 �
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey =
-    request.headers.get("x-api-key") ?? process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "APIキーが設定されていません。" },
+      { error: "サーバーの環境変数 OPENAI_API_KEY が設定されていません。" },
       { status: 401 },
     );
   }

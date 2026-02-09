@@ -9,17 +9,13 @@ type SettingsModalProps = {
   onClose: () => void;
   profile: ProfileAttribute[];
   onDeleteProfileAttribute: (key: string) => void;
-  apiKey: string;
-  onApiKeyChange: (value: string) => void;
-  endpointUrl: string;
-  onEndpointUrlChange: (value: string) => void;
   model: string;
   onModelChange: (value: string) => void;
   temperature: number;
   onTemperatureChange: (value: number) => void;
 };
 
-const categories = ["プロファイル", "一般", "表示", "通知", "モデル", "API"] as const;
+const categories = ["プロファイル", "一般", "表示", "通知", "モデル"] as const;
 type Category = (typeof categories)[number];
 
 export default function SettingsModal({
@@ -27,10 +23,6 @@ export default function SettingsModal({
   onClose,
   profile,
   onDeleteProfileAttribute,
-  apiKey,
-  onApiKeyChange,
-  endpointUrl,
-  onEndpointUrlChange,
   model,
   onModelChange,
   temperature,
@@ -232,34 +224,6 @@ export default function SettingsModal({
           </div>
         );
 
-      case "API":
-        return (
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">APIキー</label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => onApiKeyChange(e.target.value)}
-                placeholder="sk-..."
-                className="w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              />
-              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                未入力の場合はサーバー側の環境変数 OPENAI_API_KEY が使用されます
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">エンドポイントURL</label>
-              <input
-                type="text"
-                value={endpointUrl}
-                onChange={(e) => onEndpointUrlChange(e.target.value)}
-                placeholder="https://api.openai.com/v1 (デフォルト)"
-                className="w-full max-w-sm rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              />
-            </div>
-          </div>
-        );
     }
   };
 

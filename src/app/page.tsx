@@ -29,8 +29,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileAttribute[]>([]);
-  const [apiKey, setApiKey] = useState("");
-  const [endpointUrl, setEndpointUrl] = useState("");
   const [model, setModel] = useState("gpt-4o-mini");
   const [temperature, setTemperature] = useState(0.7);
   const messageCountRef = useRef(0);
@@ -55,9 +53,6 @@ export default function Home() {
 
   const fetchProfile = useCallback(
     async (conversationMessages: ChatMessage[]) => {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (apiKey) headers["x-api-key"] = apiKey;
-
       const body: ProfileRequest = {
         messages: conversationMessages,
         currentProfile: profile,
@@ -66,7 +61,7 @@ export default function Home() {
       try {
         const res = await fetch("/api/profile", {
           method: "POST",
-          headers,
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
         if (res.ok) {
@@ -77,7 +72,7 @@ export default function Home() {
         // プロファイル更新失敗はサイレントに無視
       }
     },
-    [apiKey, profile],
+    [profile],
   );
 
   const handleSend = useCallback(
@@ -113,9 +108,6 @@ export default function Home() {
         content: m.content,
       }));
 
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (apiKey) headers["x-api-key"] = apiKey;
-
       const body: ChatRequest = {
         conversationId: activeId,
         messages: chatMessages,
@@ -126,7 +118,7 @@ export default function Home() {
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers,
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
@@ -177,7 +169,7 @@ export default function Home() {
         setIsLoading(false);
       }
     },
-    [activeId, messages, apiKey, profile, model, temperature, fetchProfile],
+    [activeId, messages, profile, model, temperature, fetchProfile],
   );
 
   const handleDeleteProfileAttribute = useCallback((key: string) => {
@@ -206,10 +198,6 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)}
         profile={profile}
         onDeleteProfileAttribute={handleDeleteProfileAttribute}
-        apiKey={apiKey}
-        onApiKeyChange={setApiKey}
-        endpointUrl={endpointUrl}
-        onEndpointUrlChange={setEndpointUrl}
         model={model}
         onModelChange={setModel}
         temperature={temperature}

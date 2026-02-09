@@ -16,10 +16,10 @@ function buildSystemPrompt(profile?: ProfileAttribute[]): string {
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = request.headers.get("x-api-key") ?? process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "APIキーが設定されていません。環境変数 OPENAI_API_KEY を設定するか、リクエストヘッダーに x-api-key を含めてください。" },
+      { error: "サーバーの環境変数 OPENAI_API_KEY が設定されていません。" },
       { status: 401 },
     );
   }
