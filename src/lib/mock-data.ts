@@ -1,6 +1,49 @@
-import { Conversation, Message } from "./types";
+import { Conversation, Message, ProfileAttribute } from "./types";
 
 export type { Conversation, Message };
+
+export const mockProfileAttributes: ProfileAttribute[] = [
+  { key: "興味", value: "Web開発", confidence: 0.9 },
+  { key: "使用言語", value: "TypeScript", confidence: 0.85 },
+  { key: "経験レベル", value: "中級者", confidence: 0.75 },
+];
+
+const profilePool: ProfileAttribute[] = [
+  { key: "興味", value: "Web開発", confidence: 0 },
+  { key: "興味", value: "機械学習", confidence: 0 },
+  { key: "興味", value: "モバイルアプリ開発", confidence: 0 },
+  { key: "使用言語", value: "TypeScript", confidence: 0 },
+  { key: "使用言語", value: "Python", confidence: 0 },
+  { key: "使用言語", value: "Rust", confidence: 0 },
+  { key: "経験レベル", value: "初心者", confidence: 0 },
+  { key: "経験レベル", value: "中級者", confidence: 0 },
+  { key: "経験レベル", value: "上級者", confidence: 0 },
+  { key: "フレームワーク", value: "Next.js", confidence: 0 },
+  { key: "フレームワーク", value: "React", confidence: 0 },
+  { key: "フレームワーク", value: "Vue.js", confidence: 0 },
+  { key: "学習目標", value: "パフォーマンス最適化", confidence: 0 },
+  { key: "学習目標", value: "テスト手法", confidence: 0 },
+  { key: "学習目標", value: "アーキテクチャ設計", confidence: 0 },
+];
+
+export function getRandomMockProfile(): ProfileAttribute[] {
+  const count = 3 + Math.floor(Math.random() * 3); // 3〜5件
+  const shuffled = [...profilePool].sort(() => Math.random() - 0.5);
+
+  // key の重複を避けて選択
+  const seen = new Set<string>();
+  const selected: ProfileAttribute[] = [];
+  for (const attr of shuffled) {
+    if (seen.has(attr.key)) continue;
+    seen.add(attr.key);
+    selected.push({
+      ...attr,
+      confidence: Math.round((0.6 + Math.random() * 0.4) * 100) / 100,
+    });
+    if (selected.length >= count) break;
+  }
+  return selected;
+}
 
 export const conversations: Conversation[] = [
   {
