@@ -9,6 +9,8 @@ import {
   conversations as initialConversations,
   messagesByConversation as initialMessages,
   getRandomMockResponse,
+  mockProfileAttributes,
+  getRandomMockProfile,
 } from "@/lib/mock-data";
 import type {
   Conversation,
@@ -30,7 +32,7 @@ export default function Home() {
   const [activeId, setActiveId] = useState<string | null>(conversations[0]?.id ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [profile, setProfile] = useState<ProfileAttribute[]>([]);
+  const [profile, setProfile] = useState<ProfileAttribute[]>(USE_MOCK ? mockProfileAttributes : []);
   const [model, setModel] = useState("gpt-4o-mini");
   const [temperature, setTemperature] = useState(0.7);
   const messageCountRef = useRef(0);
@@ -153,10 +155,12 @@ export default function Home() {
           [activeId]: allMessages,
         }));
 
-        // プロファイル更新（N件ごと、mockモードではスキップ）
-        if (!USE_MOCK) {
-          messageCountRef.current += 1;
-          if (messageCountRef.current % PROFILE_UPDATE_INTERVAL === 0) {
+        // プロファイル更新（N件ごと）
+        messageCountRef.current += 1;
+        if (messageCountRef.current % PROFILE_UPDATE_INTERVAL === 0) {
+          if (USE_MOCK) {
+            setProfile(getRandomMockProfile());
+          } else {
             const profileMessages: ChatMessage[] = allMessages.map((m) => ({
               role: m.role,
               content: m.content,
